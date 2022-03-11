@@ -190,7 +190,7 @@ def run_ga(g, n, k, m, e):
     for index in range(g):
         new_pool = []
         if e:
-            new_pool.append(top(pool))
+            new_pool.append(tournament(pool))
         while len(new_pool) < n:
             p1 =  tournament(pool)
             dc = deepcopy(pool)
@@ -202,7 +202,7 @@ def run_ga(g, n, k, m, e):
             new_pool.append(o1)
             new_pool.append(o2)
         pool = new_pool
-    return top(pool)
+    return tournament(pool)
 
 def generate_random_pool(pool_size):
     pool = []
@@ -213,20 +213,6 @@ def generate_random_pool(pool_size):
             new_element[j] = int(random.uniform(1,9))
         pool.append(new_element)
     return pool
-
-def top(pool):
-    if len(pool) > 0:
-        t = pool[0]
-        t_value = evaluate(t)
-        for p in pool:
-            p_value = evaluate(p)
-            # aceita PROB_TOP1 = 0.5 das vezes um trocar o valor do top por um valor igual ao do atual
-            if t_value > p_value or ((t_value == p_value) and random.random() < PROB_TOP1):
-                t = p
-                t_value = p_value
-        return t
-    else:
-        return None
 
 ga = run_ga(100, 100, 0, 0.667, True)
 print(ga)
