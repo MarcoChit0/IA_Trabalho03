@@ -1,8 +1,12 @@
 from ast import Return
+from audioop import cross
 from copy import deepcopy
+import random
+from select import select
 
 
 QUEEN_VALUE = 1
+PROB_TOP1 = 0.5
 
 class Queen: 
     def __init__ (self, position, value):
@@ -32,8 +36,7 @@ def evaluate(individual):
     :return:int numero de ataques entre rainhas no individuo recebido
     """
     new_ind = deepcopy(individual)
-    new_ind[:] = [new_ind - 1 for new_ind in new_ind]
-
+    new_ind[:] = [i - 1 for i in new_ind]
     # board [0...7][0...7]
     board = [
         [0,0,0,0,0,0,0,0], 
@@ -147,11 +150,9 @@ def crossover(parent1, parent2, index):
     """
     if 1 <= index <= 7:
         uc1 = deepcopy(parent1[0:index])
-        print(uc1)
         uc2 = deepcopy(parent2[0:index])
         c1 = deepcopy(parent1[index:len(parent1)])
         c2 = deepcopy(parent2[index:len(parent2)])
-        print(c2)
         offspring1 = uc1 + c2
         offspring2 = uc2 + c1
         return offspring1, offspring2
@@ -165,10 +166,14 @@ def mutate(individual, m):
     Caso random() < m, sorteia uma posição aleatória do indivíduo e
     coloca nela um número aleatório entre 1 e 8 (inclusive).
     :param individual:list
-    :param m:int - probabilidade de mutacao
+    :param m:int - probabilidade de mutacao (0<= m <= 1)
     :return:list - individuo apos mutacao (ou intacto, caso a prob. de mutacao nao seja satisfeita)
     """
-    raise NotImplementedError  # substituir pelo seu codigo
+    if random.random() < m:
+        pos = int(random.uniform(0,8))
+        value = int(random.uniform(1,9))
+        individual[pos] = value
+    return individual
 
 
 def run_ga(g, n, k, m, e):
@@ -181,7 +186,48 @@ def run_ga(g, n, k, m, e):
     :param e:bool - se vai haver elitismo
     :return:list - melhor individuo encontrado
     """
-    raise NotImplementedError  # substituir pelo seu codigo
+    pool = generate_random_pool(n)
+    for index in range(g):
+        new_pool = []
+        if e:
+            new_pool.append(top(pool))
+        while len(new_pool) < n:
+            p1 =  tournament(pool)
+            dc = deepcopy(pool)
+            dc.remove(p1)
+            p2 = tournament(dc)
+            o1, o2 = crossover(p1, p2, 0)
+            o1 = mutate(o1, m)
+            o2 = mutate(o2, m)
+            new_pool.append(o1)
+            new_pool.append(o2)
+        pool = new_pool
+    return top(pool)
 
-print(tournament([[2,2,4,8,1,6,3,4],[2,4,7,5,2,4,1,1], [3,2,7,4,8,5,5,2], [2,4,7,4,8,5,5,2], [3,2,7,5,2,4,1,1]]))
-print(crossover( [2,4,7,4,8,5,5,2], [3,2,7,5,2,4,1,1], 3))
+def generate_random_pool(pool_size):
+    pool = []
+    basic_individual = [1,1,1,1,1,1,1,1]
+    for i in range(pool_size):
+        new_element = deepcopy(basic_individual)
+        for j in range(8):
+            new_element[j] = int(random.uniform(1,9))
+        pool.append(new_element)
+    return pool
+
+def top(pool):
+    if len(pool) > 0:
+        t = pool[0]
+        t_value = evaluate(t)
+        for p in pool:
+            p_value = evaluate(p)
+            # aceita PROB_TOP1 = 0.5 das vezes um trocar o valor do top por um valor igual ao do atual
+            if t_value > p_value or ((t_value == p_value) and random.random() < PROB_TOP1):
+                t = p
+                t_value = p_value
+        return t
+    else:
+        return None
+
+ga = run_ga(100, 100, 0, 0.667, True)
+print(ga)
+print(evaluate(ga))
