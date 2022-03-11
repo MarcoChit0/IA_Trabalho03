@@ -145,7 +145,18 @@ def crossover(parent1, parent2, index):
     :param index:int
     :return:list,list
     """
-    raise NotImplementedError  # substituir pelo seu codigo
+    if 1 <= index <= 7:
+        uc1 = deepcopy(parent1[0:index])
+        print(uc1)
+        uc2 = deepcopy(parent2[0:index])
+        c1 = deepcopy(parent1[index:len(parent1)])
+        c2 = deepcopy(parent2[index:len(parent2)])
+        print(c2)
+        offspring1 = uc1 + c2
+        offspring2 = uc2 + c1
+        return offspring1, offspring2
+    else: 
+        return parent1, parent2
 
 
 def mutate(individual, m):
@@ -173,3 +184,4 @@ def run_ga(g, n, k, m, e):
     raise NotImplementedError  # substituir pelo seu codigo
 
 print(tournament([[2,2,4,8,1,6,3,4],[2,4,7,5,2,4,1,1], [3,2,7,4,8,5,5,2], [2,4,7,4,8,5,5,2], [3,2,7,5,2,4,1,1]]))
+print(crossover( [2,4,7,4,8,5,5,2], [3,2,7,5,2,4,1,1], 3))
