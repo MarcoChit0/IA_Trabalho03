@@ -1,3 +1,4 @@
+from ast import Return
 from copy import deepcopy
 
 
@@ -25,12 +26,14 @@ def evaluate(individual):
     """
     Recebe um indivíduo (lista de inteiros) e retorna o número de ataques
     entre rainhas na configuração especificada pelo indivíduo.
-    Por exemplo, no individuo [2,2,4,8,1,6,3,4], o número de ataques é 9.
+    Por exemplo, no individuo [2,2,4,8,1,6,3,4], o número de ataques é 10.
 
     :param individual:list
     :return:int numero de ataques entre rainhas no individuo recebido
     """
-    
+    new_ind = deepcopy(individual)
+    new_ind[:] = [new_ind - 1 for new_ind in new_ind]
+
     # board [0...7][0...7]
     board = [
         [0,0,0,0,0,0,0,0], 
@@ -41,50 +44,72 @@ def evaluate(individual):
         [0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0]]
+
     queens = []
-    for row, col in enumerate(individual):
+    for row, col in enumerate(new_ind):
         queen_pos = (row, col)
         add_queen_to_the_board(board, queen_pos, queens)
-    print(board)
     v = 0
     for q in queens:
-        q.print()
         v += q.value
-    print(v/2)
+    return v
 
 def add_queen_to_the_board(board, queen_pos, queens):
-    original_value = deepcopy(board[queen_pos[0]][queen_pos[1]])
-    new_queen = Queen(queen_pos , original_value)
-    board[queen_pos[0]][queen_pos[1]] = QUEEN_VALUE
+    value = 0
+    # não tem para que expandir se a primeira rainha não vai colidir com nenhuma outra
+    if len(queens) > 0:
+        value +=    horizontal_expansion(board, queen_pos)
+        value +=    vertical_expansion(board, queen_pos)
+        value +=    diagonal_expansion(board, queen_pos)
+    new_queen = Queen(queen_pos, value)
     queens.append(new_queen)
-    vertical_expansion(board, queen_pos, queens)
-    horizontal_expansion(board, queen_pos, queens)
-    # diagonal_expansion(board, queen_pos, queens)
+    board[queen_pos[0]][queen_pos[1]] = QUEEN_VALUE
     return
 
-def update_queen_list(queen_pos, queens):
-    for q in queens:
-        if q.position[0] == queen_pos[0] and q.position[1] == queen_pos[1]:
-            q.value = q.value + 1
-
-def vertical_expansion(board, queen_pos, queens):
+def vertical_expansion(board, queen_pos):
+    sum = 0
     for ver in range(8):
-        if board[ver][queen_pos[1]] != QUEEN_VALUE:
-            board[ver][queen_pos[1]] = board[ver][queen_pos[1]] + 1
-        else:
-            if board[ver][queen_pos[1]] != queen_pos:
-                update_queen_list(queen_pos, queens)
+        if board[ver][queen_pos[1]] == QUEEN_VALUE:
+            sum += 1
+    return sum
 
-def horizontal_expansion(board, queen_pos, queens):
+def horizontal_expansion(board, queen_pos):
+    sum = 0
     for hor in range(8):
-        if board[queen_pos[0]][hor] != QUEEN_VALUE:
-            board[queen_pos[0]][hor] = board[queen_pos[0]][hor] + 1
-        else:
-            print("chamei")
-            update_queen_list(queen_pos, queens)
+        if board[queen_pos[0]][hor] == QUEEN_VALUE:
+            sum += 1
+    return sum
 
-def diagonal_expansion(board, queen_pos, queens):
-    raise NotImplementedError
+# diagonal nem sempre vai até 8
+def diagonal_expansion(board, queen_pos):
+    sum = 0 
+    dict_boardCorner_deltaPos = {
+        (0,0):(-1,-1),
+        (0,7):(-1,1),
+        (7,0):(1,-1),
+        (7,7):(1,1)}
+    for key in dict_boardCorner_deltaPos:
+        sum += diagonal_search(board, queen_pos, key, dict_boardCorner_deltaPos[key])
+    return sum
+
+def diagonal_search(board, queen_pos, end_pos, delta_pos):
+    sum = 0
+    pos = deepcopy(queen_pos)
+    while checkOutOfBorders(pos) and pos != end_pos:
+        if board[pos[0]][pos[1]] == QUEEN_VALUE:
+            sum += 1
+        x = pos[0] 
+        x += delta_pos[0]
+        y = pos[1] 
+        y += delta_pos[1]
+        pos = (x,y)
+    return sum
+
+def checkOutOfBorders(current_pos):
+    if 0 <= current_pos[0] <= 7 and 0 <= current_pos[1] <= 7:
+        return True
+    else: 
+        return False
 
 def tournament(participants):
     """
@@ -93,7 +118,17 @@ def tournament(participants):
     :param participants:list - lista de individuos
     :return:list melhor individuo da lista recebida
     """
-    raise NotImplementedError  # substituir pelo seu codigo
+    if len(participants) > 0:
+        best_value = evaluate(participants[0])
+        best = participants[0]
+        for p in participants:
+            p_value = evaluate(p)
+            if best_value > p_value:
+                best_value = p_value
+                best = p
+        return best
+    else: 
+        return None
 
 
 def crossover(parent1, parent2, index):
@@ -137,4 +172,4 @@ def run_ga(g, n, k, m, e):
     """
     raise NotImplementedError  # substituir pelo seu codigo
 
-evaluate([6,6,6,6,6,6,6,6])
+print(tournament([[2,2,4,8,1,6,3,4],[2,4,7,5,2,4,1,1], [3,2,7,4,8,5,5,2], [2,4,7,4,8,5,5,2], [3,2,7,5,2,4,1,1]]))
