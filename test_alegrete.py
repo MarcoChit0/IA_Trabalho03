@@ -8,7 +8,7 @@ class TestAlegrete(unittest.TestCase):
     def test_compute_mse(self):
         data = np.genfromtxt('alegrete.csv', delimiter=',')
         mse = alegrete.compute_mse(0, 0, data)
-        self.assertAlmostEqual(64.145467754, mse, 8)  # comparacao de floats com 9 casas de precisao
+        self.assertAlmostEqual(66.78348986604624, mse, 8)  # comparacao de floats com 9 casas de precisao
 
     def test_step_gradient(self):
         # dataset do Quiz de Otimizacao Continua

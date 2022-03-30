@@ -1,6 +1,17 @@
-from copy import deepcopy
-from wsgiref.simple_server import demo_app
 import numpy as np
+
+
+def read_data_csv(file_name):
+    """
+    Le dados de um arquivo csv e retorna um ndarray bidimensional (matriz)
+    onde a primeira coluna contem a area dos terrenos e a segunda coluna 
+    contem os precos em milhares de reais
+    :param file_name: string - endereco do arquivo a ser lido
+    :return: ndarray bidimensional - matriz de dados
+    """
+    data = np.genfromtxt(file_name, delimiter=',')
+    return data
+
 
 def compute_mse(theta_0, theta_1, data):
     """
@@ -19,6 +30,7 @@ def compute_mse(theta_0, theta_1, data):
     erro_quadratico_medio = np.sum(erros_quadrados) / erros_quadrados.size
     return erro_quadratico_medio
 
+
 def step_gradient(theta_0, theta_1, data, alpha):
     """
     Executa uma atualização por descida do gradiente  e retorna os valores atualizados de theta_0 e theta_1.
@@ -28,17 +40,19 @@ def step_gradient(theta_0, theta_1, data, alpha):
     :param alpha: float - taxa de aprendizado (a.k.a. tamanho do passo)
     :return: float,float - os novos valores de theta_0 e theta_1, respectivamente
     """
-    h = np.copy(data[:,0]) * theta_1 + theta_0
-    derivada_theta_0 = h - np.copy(data[:,1])
-    derivada_theta_1 = np.copy(derivada_theta_0)
-    derivada_theta_1 = np.copy(derivada_theta_1) * np.copy(data[:,0])
-    num_elementos = len(data)
-    num_elementos = 2 / num_elementos
-    derivada_theta_0 = np.sum(derivada_theta_0) * num_elementos
-    derivada_theta_1 = np.sum(derivada_theta_1) * num_elementos
-    theta_0 -= alpha * derivada_theta_0
-    theta_1 -= alpha * derivada_theta_1
-    return theta_0, theta_1
+    # copia todos os valores da primeira coluna (Xi) e aplica a funcao para calculo
+    # dos valores previstos e subtrai os valores reais de Yi
+    predicted_values = np.copy(data[:, 0]) * theta_1 + theta_0
+    predicted_values = predicted_values - data[:, 1]
+    num_elementos = predicted_values.size
+    # calcula derivadas para theta_0 e theta_1
+    sum_to_theta_0 = np.sum(predicted_values) * (2 / num_elementos)
+    sum_to_theta_1 = np.sum(
+        predicted_values * data[:, 0]) * (2 / num_elementos)
+    # calcula novos valores para theta_0 e theta_1
+    new_theta_0 = theta_0 - alpha * sum_to_theta_0
+    new_theta_1 = theta_1 - alpha * sum_to_theta_1
+    return new_theta_0, new_theta_1
 
 
 def fit(data, theta_0, theta_1, alpha, num_iterations):
@@ -56,12 +70,21 @@ def fit(data, theta_0, theta_1, alpha, num_iterations):
     :param num_iterations: int - numero de épocas/iterações para executar a descida de gradiente
     :return: list,list - uma lista com os theta_0 e outra com os theta_1 obtidos ao longo da execução
     """
-    lista_theta_0 = [theta_0]
-    lista_tetha_1 = [theta_1]
-    i = 0
-    while i != num_iterations:
-        theta_0, theta_1 = step_gradient(theta_0, theta_1, data, alpha)
-        lista_theta_0.append(deepcopy(theta_0))
-        lista_tetha_1.append(deepcopy(theta_1))
-        i += 1
-    return lista_theta_0, lista_tetha_1
+    cont_iterations = 0
+    all_theta_0 = list()
+    all_theta_1 = list()
+    all_theta_0.append(theta_0)
+    all_theta_1.append(theta_1)
+    prox_theta_0, prox_theta_1 = theta_0, theta_1
+    while cont_iterations != num_iterations:
+        prox_theta_0, prox_theta_1 = step_gradient(
+            prox_theta_0, prox_theta_1, data, alpha
+        )
+        all_theta_0.append(prox_theta_0)
+        all_theta_1.append(prox_theta_1)
+        cont_iterations += 1
+    return all_theta_0, all_theta_1
+
+
+dados = read_data_csv('alegrete.csv')
+print(fit(dados, 0, 0.5, 0.1, 30))

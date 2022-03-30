@@ -1,9 +1,9 @@
-from ast import Return
-from audioop import cross
 from copy import deepcopy
+from math import ceil, floor
 import random
-from select import select
-
+from time import time
+import numpy as np
+import matplotlib.pyplot as plt
 
 QUEEN_VALUE = 1
 PROB_TOP1 = 0.5
@@ -176,7 +176,7 @@ def mutate(individual, m):
     return individual
 
 
-def run_ga(g, n, k, m, e):
+def run_ga(g, n, k, m, e, mostrar_grafico= False):
     """
     Executa o algoritmo genético e retorna o indivíduo com o menor número de ataques entre rainhas
     :param g:int - numero de gerações
@@ -184,24 +184,41 @@ def run_ga(g, n, k, m, e):
     :param k:int - numero de participantes do torneio
     :param m:float - probabilidade de mutação (entre 0 e 1, inclusive)
     :param e:bool - se vai haver elitismo
+    :param mostrar_grafico:bool - se devemos mostrar ou não o gráfico da execução do algoritmo
     :return:list - melhor individuo encontrado
     """
     pool = generate_random_pool(n)
+    if mostrar_grafico:
+        piores_valores = []
+        valores_medios = []
+        melhores_valores = []
+        x = []
+        melhor_possivel = []
     for index in range(g):
         new_pool = []
         if e:
             new_pool.append(tournament(pool))
         while len(new_pool) < n:
-            p1 =  tournament(pool)
+            p1 =  tournament(pool[0:k])
             dc = deepcopy(pool)
             dc.remove(p1)
-            p2 = tournament(dc)
-            o1, o2 = crossover(p1, p2, 0)
+            p2 = tournament(dc[0:k])
+            o1, o2 = crossover(p1, p2, int(random.uniform(0,7)))
             o1 = mutate(o1, m)
             o2 = mutate(o2, m)
             new_pool.append(o1)
             new_pool.append(o2)
-        pool = new_pool
+        if mostrar_grafico:
+            pool = new_pool
+            piores_valores.append(pior(pool))
+            valores_medios.append(media(pool))
+            melhores_valores.append(evaluate(tournament(pool)))
+            x.append(index)
+            melhor_possivel.append(0)
+
+    if mostrar_grafico:
+        plt.plot(x, piores_valores, 'r', x, valores_medios, 'b', x, melhores_valores, 'g', x, melhor_possivel, 'k')
+        plt.show()
     return tournament(pool)
 
 def generate_random_pool(pool_size):
@@ -214,6 +231,55 @@ def generate_random_pool(pool_size):
         pool.append(new_element)
     return pool
 
-ga = run_ga(100, 100, 0, 0.667, True)
-print(ga)
-print(evaluate(ga))
+def media(pool):
+    m = 0
+    for p in pool: 
+        m += evaluate(p)
+    return m/len(pool)
+
+def pior(pool):
+    valor_pior_competidor = 0
+    for p in pool:
+        if evaluate(p) >= valor_pior_competidor:
+            valor_pior_competidor = evaluate(p)
+    return valor_pior_competidor
+
+'''
+print("original")
+run_ga(20,200,10,0.4, True, True)
+
+print("variação - param 1")
+run_ga(10,200,10,0.4, True, True)
+run_ga(30,200,10,0.4, True, True)
+
+print("variação - param 2")
+run_ga(20,100,10,0.4, True, True)
+run_ga(20,300,10,0.4, True, True)
+
+print("variação - param 3")
+run_ga(20,200,5,0.4, True, True)
+run_ga(20,200,15,0.4, True, True)
+
+print("variação - param 4")
+run_ga(20,200,10,0.2, True, True)
+run_ga(20,200,10,0.3, True, True)
+
+print("original - sem elitismo")
+run_ga(20,200,10,0.4,   False, True)
+
+print("variação - param 1")
+run_ga(10,200,10,0.4,   False, True)
+run_ga(30,200,10,0.4,   False, True)
+
+print("variação - param 2")
+run_ga(20,100,10,0.4,   False, True)
+run_ga(20,300,10,0.4,   False, True)
+
+print("variação - param 3")
+run_ga(20,200,5,0.4,    False, True)
+run_ga(20,200,15,0.4,   False, True)
+
+print("variação - param 4")
+run_ga(20,200,10,0.2,   False, True)
+run_ga(20,200,10,0.3,   False, True)
+'''
