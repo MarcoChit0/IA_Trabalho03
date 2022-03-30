@@ -1,2 +1,1 @@
-
-    return sum
+print("theta_0: ", lista_theta_0[len(lista_theta_0)-1], " theta_1: ",lista_theta_1[len(lista_theta_1)-1])

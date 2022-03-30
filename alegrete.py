@@ -65,3 +65,37 @@ def fit(data, theta_0, theta_1, alpha, num_iterations):
         lista_tetha_1.append(deepcopy(theta_1))
         i += 1
     return lista_theta_0, lista_tetha_1
+
+"""
+# inicialização
+path = 'D:/UFRGS/IA/Trabalhos/Trabalho 03/IA_Trabalho03/alegrete.csv'
+theta_0 = 0
+theta_1 = 0
+alpha = 0.1
+iteracoes = 50
+fator = 1
+print("obtendo dados:")
+dados = np.genfromtxt(path, delimiter=',')
+
+print("configuração original:")
+lista_theta_0, lista_theta_1 = fit(dados, theta_0, theta_1, alpha, iteracoes)
+print("theta_0: ", lista_theta_0[iteracoes - 1], " theta_1: ",lista_theta_1[iteracoes -1])
+
+
+print("alterações no aplha:")
+fator = 2
+lista_theta_0, lista_theta_1 = fit(dados, theta_0, theta_1, alpha*fator, iteracoes)
+print("theta_0: ", lista_theta_0[iteracoes - 1], " theta_1: ",lista_theta_1[iteracoes -1])
+fator = 3
+lista_theta_0, lista_theta_1 = fit(dados, theta_0, theta_1, alpha*fator, iteracoes)
+print("theta_0: ", lista_theta_0[iteracoes - 1], " theta_1: ",lista_theta_1[iteracoes -1])
+
+
+print("alterações na iteração:")
+fator = 2
+lista_theta_0, lista_theta_1 = fit(dados, theta_0, theta_1, alpha, iteracoes*fator)
+print("theta_0: ", lista_theta_0[iteracoes*fator - 1], " theta_1: ",lista_theta_1[iteracoes*fator -1])
+fator = 4
+lista_theta_0, lista_theta_1 = fit(dados, theta_0, theta_1, alpha, iteracoes*fator)
+print("theta_0: ", lista_theta_0[iteracoes*fator - 1], " theta_1: ",lista_theta_1[iteracoes*fator -1])
+"""
